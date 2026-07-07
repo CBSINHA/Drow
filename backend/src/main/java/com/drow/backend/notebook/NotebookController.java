@@ -2,11 +2,15 @@ package com.drow.backend.notebook;
 
 import com.drow.backend.notebook.dto.CreateNotebookRequest;
 import com.drow.backend.notebook.dto.NotebookResponse;
+import com.drow.backend.notebook.dto.UpdateNotebookRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/notebooks")
@@ -16,9 +20,44 @@ public class NotebookController {
     private final NotebookService notebookService;
 
     @PostMapping
-    public NotebookResponse createNotebook(
-            @RequestBody CreateNotebookRequest request
+    public ResponseEntity<NotebookResponse> createNotebook(
+            @Valid @RequestBody CreateNotebookRequest request
     ) {
-        return notebookService.createNotebook(request);
+
+        NotebookResponse response =
+                notebookService.createNotebook(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<NotebookResponse>> getNotebooks() {
+
+        return ResponseEntity.ok(
+                notebookService.getNotebooks()
+        );
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<NotebookResponse> updateNotebook(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateNotebookRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                notebookService.updateNotebook(id, request)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> moveToTrash(
+            @PathVariable UUID id
+    ) {
+
+        notebookService.moveToTrash(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
