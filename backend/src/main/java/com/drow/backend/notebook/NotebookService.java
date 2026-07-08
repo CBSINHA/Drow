@@ -104,4 +104,37 @@ public class NotebookService {
 
         notebookRepository.save(notebook);
     }
+
+    public List<NotebookResponse> getTrashNotebooks() {
+
+        UUID ownerId = UUID.fromString(
+                "00000000-0000-0000-0000-000000000001"
+        );
+
+        return notebookRepository
+                .findByOwnerIdAndIsDeletedTrueOrderByPositionAsc(ownerId)
+                .stream()
+                .map(notebook -> new NotebookResponse(
+                        notebook.getId(),
+                        notebook.getName()
+                ))
+                .toList();
+    }
+
+    public void restoreNotebook(UUID notebookId) {
+
+        Notebook notebook = notebookRepository
+                .findById(notebookId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Notebook not found: " + notebookId
+                        )
+                );
+
+        notebook.setIsDeleted(false);
+
+        notebook.setUpdatedAt(LocalDateTime.now());
+
+        notebookRepository.save(notebook);
+    }
 }

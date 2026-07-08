@@ -60,4 +60,22 @@ public class NotebookController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/trash")
+    public ResponseEntity<List<NotebookResponse>> getTrashNotebooks() {
+
+        return ResponseEntity.ok(
+                notebookService.getTrashNotebooks()
+        );
+    }
+
+    @PatchMapping("/restore/{id}")
+    public ResponseEntity<Void> restoreNotebook(
+            @PathVariable UUID id
+    ) {
+
+        notebookService.restoreNotebook(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

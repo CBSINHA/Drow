@@ -9,5 +9,10 @@ public interface NotebookRepository extends JpaRepository<Notebook, UUID> {
     List<Notebook> findByOwnerIdAndIsDeletedFalseOrderByPositionAsc(
             UUID ownerId
     );
+    List<Notebook> findByOwnerIdAndIsDeletedTrueOrderByPositionAsc(
+            UUID ownerId
+    );
+
     long countByOwnerIdAndIsDeletedFalse(UUID ownerId);
+
 }
