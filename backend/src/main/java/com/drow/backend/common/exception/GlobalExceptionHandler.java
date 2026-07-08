@@ -17,4 +17,14 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(ex.getMessage()));
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(
+            IllegalStateException ex
+    ) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(ex.getMessage()));
+    }
 }

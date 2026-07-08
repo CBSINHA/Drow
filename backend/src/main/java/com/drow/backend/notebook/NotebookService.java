@@ -137,4 +137,23 @@ public class NotebookService {
 
         notebookRepository.save(notebook);
     }
+
+    public void permanentlyDeleteNotebook(UUID notebookId) {
+
+        Notebook notebook = notebookRepository
+                .findById(notebookId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Notebook not found: " + notebookId
+                        )
+                );
+
+        if (!notebook.getIsDeleted()) {
+            throw new IllegalStateException(
+                    "Notebook must be moved to trash before permanent deletion"
+            );
+        }
+
+        notebookRepository.delete(notebook);
+    }
 }

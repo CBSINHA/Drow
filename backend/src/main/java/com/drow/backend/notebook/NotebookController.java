@@ -78,4 +78,14 @@ public class NotebookController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/trash/{id}")
+    public ResponseEntity<Void> permanentlyDeleteNotebook(
+            @PathVariable UUID id
+    ) {
+
+        notebookService.permanentlyDeleteNotebook(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }
