@@ -1,5 +1,6 @@
 package com.drow.backend.notebook;
 
+import com.drow.backend.notebook.dto.NotebookResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -13,6 +14,12 @@ public interface NotebookRepository extends JpaRepository<Notebook, UUID> {
             UUID ownerId
     );
 
+    boolean existsByOwnerIdAndNameAndIsDeletedFalse(
+            UUID ownerId,
+            String name
+    );
+
     long countByOwnerIdAndIsDeletedFalse(UUID ownerId);
+
 
 }

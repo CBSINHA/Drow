@@ -2,6 +2,7 @@ package com.drow.backend.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -26,5 +27,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex
+    ) {
+
+        String message = ex
+                .getBindingResult()
+                .getFieldErrors()
+                .getFirst()
+                .getDefaultMessage();
+
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(message));
     }
 }

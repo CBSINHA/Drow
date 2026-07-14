@@ -4,6 +4,7 @@ import com.drow.backend.common.exception.ResourceNotFoundException;
 import com.drow.backend.notebook.dto.CreateNotebookRequest;
 import com.drow.backend.notebook.dto.NotebookResponse;
 import com.drow.backend.notebook.dto.UpdateNotebookRequest;
+import com.drow.backend.section.SectionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotebookService {
     private final NotebookRepository notebookRepository;
+    private final SectionRepository sectionRepository;
     public NotebookResponse createNotebook(CreateNotebookRequest request){
         Notebook notebook= new Notebook();
 
@@ -36,6 +38,17 @@ public class NotebookService {
 
         notebook.setCreatedAt(now);
         notebook.setUpdatedAt(now);
+        if (
+                notebookRepository
+                        .existsByOwnerIdAndNameAndIsDeletedFalse(
+                                notebook.getOwnerId(),
+                                request.name()
+                        )
+        ) {
+            throw new IllegalStateException(
+                    "Notebook with this name already exists"
+            );
+        }
 
         Notebook savedNotebook =
                 notebookRepository.save(notebook);
@@ -67,6 +80,7 @@ public class NotebookService {
             UpdateNotebookRequest request
     ) {
 
+
         Notebook notebook = notebookRepository
                 .findById(notebookId)
                 .orElseThrow(() ->
@@ -74,8 +88,37 @@ public class NotebookService {
                                 "Notebook not found: " + notebookId
                         )
                 );
+        if (Boolean.TRUE.equals(notebook.getIsDeleted())) {
+            throw new IllegalStateException(
+                    "Notebook is in Trash"
+            );
+        }
 
-        notebook.setName(request.name());
+
+        String newName = request.name();
+
+        // No-op rename
+        if (notebook.getName().equals(newName)) {
+
+            return new NotebookResponse(
+                    notebook.getId(),
+                    notebook.getName()
+            );
+        }
+
+        if (
+                notebookRepository
+                        .existsByOwnerIdAndNameAndIsDeletedFalse(
+                                notebook.getOwnerId(),
+                                newName
+                        )
+        ) {
+            throw new IllegalStateException(
+                    "Notebook with this name already exists"
+            );
+        }
+
+        notebook.setName(newName);
 
         notebook.setUpdatedAt(LocalDateTime.now());
 
@@ -97,6 +140,12 @@ public class NotebookService {
                                 "Notebook not found: " + notebookId
                         )
                 );
+
+        if (Boolean.TRUE.equals(notebook.getIsDeleted())) {
+            throw new IllegalStateException(
+                    "Notebook is already in Trash"
+            );
+        }
 
         notebook.setIsDeleted(true);
 
@@ -131,6 +180,43 @@ public class NotebookService {
                         )
                 );
 
+        if (Boolean.FALSE.equals(notebook.getIsDeleted())) {
+            throw new IllegalStateException(
+                    "Notebook is not in Trash"
+            );
+        }
+
+        if (
+                notebookRepository
+                        .existsByOwnerIdAndNameAndIsDeletedFalse(
+                                notebook.getOwnerId(),
+                                notebook.getName()
+                        )
+        ) {
+
+            String restoredName =
+                    notebook.getName() + " (Restored)";
+
+            int counter = 1;
+
+            while (
+                    notebookRepository
+                            .existsByOwnerIdAndNameAndIsDeletedFalse(
+                                    notebook.getOwnerId(),
+                                    restoredName
+                            )
+            ) {
+
+                restoredName =
+                        notebook.getName()
+                                + " (Restored "
+                                + counter++
+                                + ")";
+            }
+
+            notebook.setName(restoredName);
+        }
+
         notebook.setIsDeleted(false);
 
         notebook.setUpdatedAt(LocalDateTime.now());
@@ -151,6 +237,12 @@ public class NotebookService {
         if (!notebook.getIsDeleted()) {
             throw new IllegalStateException(
                     "Notebook must be moved to trash before permanent deletion"
+            );
+        }
+
+        if(sectionRepository.existsByNotebookId(notebookId)){
+            throw new IllegalStateException(
+                    "Notebook contains sections. Delete sections first."
             );
         }
 

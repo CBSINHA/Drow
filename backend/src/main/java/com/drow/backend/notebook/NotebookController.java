@@ -79,7 +79,7 @@ public class NotebookController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/trash/{id}")
+    @DeleteMapping("/{id}/permanent")
     public ResponseEntity<Void> permanentlyDeleteNotebook(
             @PathVariable UUID id
     ) {
